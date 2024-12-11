@@ -15,7 +15,7 @@ const Header = () => {
   return (
     <nav className="bg-blue-600 text-white shadow-lg fixed top-0 w-full z-10">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold hidden md:flex">
           <NavLink to="/" className="hover:text-blue-200">
             Supermarket App
           </NavLink>
