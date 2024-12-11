@@ -1,11 +1,41 @@
-import React, { useState } from 'react';
-import { saveToHistory } from '../utils/localStorage';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const ShoppingList = () => {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [itemName, setItemName] = useState('');
   const [itemPrice, setItemPrice] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyLogin = async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.username || !user.password) {
+        navigate('/login'); // Redireciona se não houver usuário no localStorage
+        return;
+      }
+
+      try {
+        // Verifica no backend se o login é válido
+        const response = await axios.post('http://localhost:5000/login', {
+          username: user.username,
+          password: user.password,
+        });
+
+        if (response.status !== 200) {
+          throw new Error('Login inválido');
+        }
+      } catch (error) {
+        console.error('Erro ao verificar login:', error);
+        localStorage.removeItem('user'); // Remove dados inválidos do localStorage
+        navigate('/login'); // Redireciona para a página de login
+      }
+    };
+
+    verifyLogin();
+  }, [navigate]);
 
   const addItem = () => {
     if (!itemName || !itemPrice) return;
@@ -23,17 +53,31 @@ const ShoppingList = () => {
     setTotal(total - itemToRemove.price);
   };
 
-  const finalizePurchase = () => {
+  const finalizePurchase = async () => {
     if (items.length > 0) {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const username = user?.username;
+
+      if (!username) {
+        alert('Usuário não encontrado. Faça login novamente.');
+        return;
+      }
+
       const purchase = {
-        date: new Date().toLocaleDateString('pt-BR'), // Adiciona a data
+        username,
         items,
         total,
       };
-      saveToHistory(purchase);
-      setItems([]);
-      setTotal(0);
-      alert('Compra finalizada com sucesso!');
+
+      try {
+        const response = await axios.post('http://localhost:5000/purchase', purchase);
+        alert('Compra salva com sucesso!');
+        setItems([]);
+        setTotal(0);
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao salvar a compra no banco de dados.');
+      }
     }
   };
 

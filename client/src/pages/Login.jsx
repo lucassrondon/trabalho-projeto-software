@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -16,6 +17,7 @@ function Login() {
             });
             localStorage.setItem('user', JSON.stringify({ username, password }));
             setMessage(response.data.message);
+            navigate('/'); // Redireciona para a página inicial após login bem-sucedido
         } catch (error) {
             setMessage(error.response?.data?.message || 'Erro no login');
         }
